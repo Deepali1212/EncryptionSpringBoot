@@ -15,9 +15,10 @@ public class EncryptionController {
 
     @PostMapping("/getEncryptionData")
     public Object encrypt(@RequestBody HashMap<String, String> input) {
-        if (!(input.containsKey("message")) || !(input.containsKey("sercretKey"))) {
+        if (!(input.containsKey("message")) || !(input.containsKey("sercretKey")) || !(input.containsKey("type"))) {
             return null;
         }
-        return service.encrypt(input.get("message"), input.get("sercretKey"));
+            return service.encrypt(input.get("message"), input.get("sercretKey"),input.get("type"));
+
     }
 }

@@ -7,18 +7,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 
 @Service
 public class EncryptionService {
-    public Object encrypt(String message, String sercretKey) {
+    public Object encrypt(String message, String sercretKey, String type) {
 
         String encrypt = "";
         try {
@@ -34,15 +36,22 @@ public class EncryptionService {
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 
             IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
-            cipher.init(Cipher.ENCRYPT_MODE, key, ivParameterSpec);
+            if (type.equalsIgnoreCase("encrypt")) {
+                cipher.init(Cipher.ENCRYPT_MODE, key, ivParameterSpec);
+                //Message is data
+                byte[] plainTextBytes = message.getBytes(StandardCharsets.UTF_8);
+                byte[] buf = cipher.doFinal(plainTextBytes);
+                byte[] base64Bytes = Base64.getEncoder().encode(buf);
+                encrypt = new String(base64Bytes);
 
-            //Message is data
-            byte[] plainTextBytes = message.getBytes(StandardCharsets.UTF_8);
-            byte[] buf = cipher.doFinal(plainTextBytes);
-            byte[] base64Bytes = Base64.getEncoder().encode(buf);
-            encrypt = new String(base64Bytes);
-
-            return encrypt;
+                return encrypt;
+            }
+            if (type.equalsIgnoreCase("decrypt")) {
+                cipher.init(Cipher.DECRYPT_MODE, key, ivParameterSpec);
+                byte[] plainText = cipher.doFinal(Base64.getDecoder()
+                        .decode(message));
+                return new String(plainText);
+            }
         } catch (Exception e) {
             System.out.println("Error while encrypting: " + e.toString());
         }
