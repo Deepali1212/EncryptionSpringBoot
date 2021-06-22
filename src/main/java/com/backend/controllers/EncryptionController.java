@@ -18,6 +18,6 @@ public class EncryptionController {
         if (!(input.containsKey("message")) || !(input.containsKey("sercretKey"))) {
             return null;
         }
-        return service.encrypt("1225", "a11b4f86cf186d127caa05db929d6f41");
+        return service.encrypt(input.get("message"), input.get("sercretKey"));
     }
 }
