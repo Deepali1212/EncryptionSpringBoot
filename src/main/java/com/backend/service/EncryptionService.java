@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 @Service
 public class EncryptionService {
-    public Object encrypt(String message, String sercretKey, String type) {
+    public String encrypt(String message, String sercretKey, String type) {
 
         String encrypt = "";
         try {
@@ -43,7 +43,6 @@ public class EncryptionService {
                 byte[] buf = cipher.doFinal(plainTextBytes);
                 byte[] base64Bytes = Base64.getEncoder().encode(buf);
                 encrypt = new String(base64Bytes);
-
                 return encrypt;
             }
             if (type.equalsIgnoreCase("decrypt")) {
@@ -53,9 +52,50 @@ public class EncryptionService {
                 return new String(plainText);
             }
         } catch (Exception e) {
-            System.out.println("Error while encrypting: " + e.toString());
+            return e.getMessage();
         }
         return null;
+    }
+
+    public String getAESEncryption(String text, String key, String type) throws Exception {
+        try {
+            if (type.equalsIgnoreCase("decrypt")) {
+                Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                byte[] keyBytes = new byte[16];
+                byte[] b = key.getBytes("UTF-8");
+                int len = b.length;
+                if (len > keyBytes.length) len = keyBytes.length;
+                System.arraycopy(b, 0, keyBytes, 0, len);
+                SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
+                IvParameterSpec ivSpec = new IvParameterSpec(keyBytes);
+                cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+                Base64.Decoder decoder = Base64.getDecoder();
+                byte[] cipherText = decoder.decode(text.getBytes("UTF8"));
+                String decryptedText = new String(cipher.doFinal(cipherText), "UTF-8");
+                return decryptedText;
+                //       BASE64Decoder decoder = new BASE64Decoder();
+                // byte[] results = cipher.doFinal(decoder.decodeBuffer(text));
+                //return new String(results, "UTF-8");
+            } else {
+                Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                byte[] keyBytes = new byte[16];
+                byte[] b = key.getBytes("UTF-8");
+                int len = b.length;
+                if (len > keyBytes.length) len = keyBytes.length;
+                System.arraycopy(b, 0, keyBytes, 0, len);
+                SecretKeySpec keySpec = new SecretKeySpec(keyBytes, "AES");
+                IvParameterSpec ivSpec = new IvParameterSpec(keyBytes);
+                cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
+                byte[] results = cipher.doFinal(text.getBytes("UTF-8"));
+                //  BASE64Encoder encoder = new BASE64Encoder();
+                Base64.Encoder encoder = Base64.getEncoder();
+                String encryptedText = encoder.encodeToString(results);
+              //  return encoder.encode(results);
+                return encryptedText;
+            }
+        } catch (Exception e) {
+            return e.getMessage();
+        }
     }
 
 }

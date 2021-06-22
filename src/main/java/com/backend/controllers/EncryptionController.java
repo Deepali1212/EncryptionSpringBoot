@@ -14,11 +14,19 @@ public class EncryptionController {
     private EncryptionService service;
 
     @PostMapping("/getEncryptionData")
-    public Object encrypt(@RequestBody HashMap<String, String> input) {
+    public String encrypt(@RequestBody HashMap<String, String> input) {
         if (!(input.containsKey("message")) || !(input.containsKey("sercretKey")) || !(input.containsKey("type"))) {
             return null;
         }
             return service.encrypt(input.get("message"), input.get("sercretKey"),input.get("type"));
+
+    }
+    @PostMapping("/getAESEncryption")
+    public String getAESEncryption(@RequestBody HashMap<String, String> input) throws Exception {
+        if (!(input.containsKey("message")) || !(input.containsKey("sercretKey")) || !(input.containsKey("type"))) {
+            return null;
+        }
+        return service.getAESEncryption(input.get("message"), input.get("sercretKey"),input.get("type"));
 
     }
 }
