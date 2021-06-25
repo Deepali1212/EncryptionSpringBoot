@@ -20,13 +20,15 @@ import java.util.HashMap;
 
 @Service
 public class EncryptionService {
-    public String encrypt(String message, String sercretKey, String type) {
-
+    public String encrypt(HashMap<String,Object> input) {
+        Object msg = input.get("message");
+        String sercretKey= (String) input.get("sercretKey");
+        String type = (String) input.get("type");
         String encrypt = "";
         try {
 
             //String jsonData = new String("{\"txnId\":\"ZAMT0001\", \"agentMob\":\"9350210028\",\"clientAgentId\":\"ZAM100002\", \"agentName\":\"AmitSharma\", \"dateOfBirth\":\"04/11/1979\", \"partnerId\":\"1225\", \"gender\":\"F\", \"aadhaarToken\":\"5552amisha49\", \"fatherName\":\"chander pal sharma\", \"handicapped\":\"0\", \"shopName\":\"jinicart\",\"pancard\":\"BCNPS0822E\", \"address\":\"K 106 krishna gali no 8 maujpur\", \"city\":\"delhi\", \"district\":\"north east delhi\", \"state\":\"delhi\", \"pinCode\":\"110053\", \"altOccupationType\":\"Private\", \"highestQualification\":\"BA\", \"isCorporate\":\"1\", \"activityFrom\":\"19/05/2021\", \"allocationIFSC\":\"ICIC0001135\", \"agentType\":\"1\", \"minCashHandlingLimit\":\"50000\", \"course\":\"None\", \"passingDate\":\"05/10/2010\", \"expFromDate\":\"05/10/2000\", \"expToDate\":\"05/10/2000\", \"deviceName\":\"Computer core 2\", \"deviceCode\":\"12\", \"givenDate\":\"05/10/2010\", \"connectivityType\":\"Mobile\", \"connectivityProvider\":\"1\", \"providerPhoneNum\":\"9350210028\", \"primarySSA\":\"delhi\",\"primaryVillegeCode\":\"40335000\", \"primaryPinCode\":\"110053\", \"primarySunday\":\"1\", \"primaryMonday\":\"1\", \"primaryTuesday\":\"1\", \"primaryWednesday\":\"1\", \"primaryThursday\":\"1\", \"primaryFriday\":\"1\", \"primarySaturday\":\"1\", \"secondaryVillegeCode\":\"40335000\", \"secondaryVillegeDetails\":\"kdfjhgkdf\", \"secondarySunday\":\"1\", \"secondaryMonday\":\"1\", \"secondaryTuesday\":\"1\", \"secondaryWednesday\":\"1\",\"secondaryThursday\":\"1\",\"secondaryFriday\":\"1\",\"secondarySaturday\":\"1\", \"remunMonth\":\"1\", \"remunYear\":\"2020\", \"corporatedId\":\"46\", \"channel\":\"1\", \"nbfcStatus\":\"0\", \"hashKey\":\"4d2c9f484c94bae27205ac2f45bb29f5\"}");
-
+            String message = msg.toString();
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] digestOfPassword = md.digest(sercretKey.getBytes(StandardCharsets.UTF_8));
             byte[] keyBytes = Arrays.copyOf(digestOfPassword, 24);
@@ -57,7 +59,11 @@ public class EncryptionService {
         return null;
     }
 
-    public String getAESEncryption(String text, String key, String type) throws Exception {
+    public String getAESEncryption(HashMap<String,Object> input) throws Exception {
+        String type = (String) input.get("type");
+        String key = (String) input.get("sercretKey");
+        Object message = input.get("message");
+        String text = message.toString();
         try {
             if (type.equalsIgnoreCase("decrypt")) {
                 Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -90,7 +96,7 @@ public class EncryptionService {
                 //  BASE64Encoder encoder = new BASE64Encoder();
                 Base64.Encoder encoder = Base64.getEncoder();
                 String encryptedText = encoder.encodeToString(results);
-              //  return encoder.encode(results);
+                //  return encoder.encode(results);
                 return encryptedText;
             }
         } catch (Exception e) {
