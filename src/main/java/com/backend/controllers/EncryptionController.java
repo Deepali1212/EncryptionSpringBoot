@@ -15,10 +15,11 @@ public class EncryptionController {
 
     @PostMapping("/getEncryptionData")
     public String encrypt(@RequestBody HashMap<String, Object> input) {
-        if (!(input.containsKey("message")) || !(input.containsKey("sercretKey")) || !(input.containsKey("type"))) {
+        if (!(input.containsKey("message")) || !(input.containsKey("secretKey")) || !(input.containsKey("type"))) {
             return null;
-        }
-            return service.encrypt(input);
+        } else if (input.get("type").toString().equalsIgnoreCase("encrypt"))
+            return service.encryptAesGcm(input);
+        else return service.decryptAesGcm(input);
 
     }
     @PostMapping("/getAESEncryption")

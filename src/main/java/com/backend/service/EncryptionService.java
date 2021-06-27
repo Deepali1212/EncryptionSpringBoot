@@ -1,6 +1,7 @@
 package com.backend.service;
 
 import com.google.gson.Gson;
+import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,18 +22,58 @@ import java.util.HashMap;
 
 @Service
 public class EncryptionService {
-    public String encrypt(HashMap<String,Object> input) {
+
+    private static final String ENCRYPT_ALGO = "AES/GCM/NoPadding";
+    private static final int TAG_LENGTH_BIT = 128;
+    private static final int IV_LENGTH_BYTE = 12;
+    private static final int AES_KEY_BIT = 256;
+
+    public String encryptAesGcm(HashMap<String, Object> input) {
         Object msg = input.get("message");
-        String sercretKey= (String) input.get("sercretKey");
+        String encoded = (String) input.get("secretKey");
+
+        Gson gson = new Gson();
+        String message = gson.toJson(msg);
+
+        try {
+            SecretKey secretKey = new SecretKeySpec(encoded.getBytes(StandardCharsets.UTF_8), "AES");
+            byte[] iv = CryptoUtils.getRandomNonce(IV_LENGTH_BYTE);
+            message = Hex.encodeHexString(EncryptorAesGcm.encryptWithPrefixIV(message.getBytes(StandardCharsets.UTF_8), secretKey, iv));
+            System.out.println(message);
+            byte[] msgByte = Hex.decodeHex(message);
+            return EncryptorAesGcm.decryptWithPrefixIV(msgByte, secretKey);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String decryptAesGcm(HashMap<String, Object> input) {
+        String msg = (String) input.get("message");
+        String encoded = (String) input.get("secretKey");
+
+        try {
+            SecretKey secretKey = new SecretKeySpec(encoded.getBytes(StandardCharsets.UTF_8), "AES");
+            byte[] msgByte = Hex.decodeHex(msg);
+            return EncryptorAesGcm.decryptWithPrefixIV(msgByte, secretKey);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String encrypt(HashMap<String, Object> input) {
+        Object msg = input.get("message");
+        String sercretKey = (String) input.get("sercretKey");
         String type = (String) input.get("type");
         String encrypt = "";
         try {
 
-         // String message = new String("{\"txnId\":\"ZAMT0001\", \"agentMob\":\"9350210028\",\"clientAgentId\":\"ZAM100002\", \"agentName\":\"AmitSharma\", \"dateOfBirth\":\"04/11/1979\", \"partnerId\":\"1225\", \"gender\":\"F\", \"aadhaarToken\":\"5552amisha49\", \"fatherName\":\"chander pal sharma\", \"handicapped\":\"0\", \"shopName\":\"jinicart\",\"pancard\":\"BCNPS0822E\", \"address\":\"K 106 krishna gali no 8 maujpur\", \"city\":\"delhi\", \"district\":\"north east delhi\", \"state\":\"delhi\", \"pinCode\":\"110053\", \"altOccupationType\":\"Private\", \"highestQualification\":\"BA\", \"isCorporate\":\"1\", \"activityFrom\":\"19/05/2021\", \"allocationIFSC\":\"ICIC0001135\", \"agentType\":\"1\", \"minCashHandlingLimit\":\"50000\", \"course\":\"None\", \"passingDate\":\"05/10/2010\", \"expFromDate\":\"05/10/2000\", \"expToDate\":\"05/10/2000\", \"deviceName\":\"Computer core 2\", \"deviceCode\":\"12\", \"givenDate\":\"05/10/2010\", \"connectivityType\":\"Mobile\", \"connectivityProvider\":\"1\", \"providerPhoneNum\":\"9350210028\", \"primarySSA\":\"delhi\",\"primaryVillegeCode\":\"40335000\", \"primaryPinCode\":\"110053\", \"primarySunday\":\"1\", \"primaryMonday\":\"1\", \"primaryTuesday\":\"1\", \"primaryWednesday\":\"1\", \"primaryThursday\":\"1\", \"primaryFriday\":\"1\", \"primarySaturday\":\"1\", \"secondaryVillegeCode\":\"40335000\", \"secondaryVillegeDetails\":\"kdfjhgkdf\", \"secondarySunday\":\"1\", \"secondaryMonday\":\"1\", \"secondaryTuesday\":\"1\", \"secondaryWednesday\":\"1\",\"secondaryThursday\":\"1\",\"secondaryFriday\":\"1\",\"secondarySaturday\":\"1\", \"remunMonth\":\"1\", \"remunYear\":\"2020\", \"corporatedId\":\"46\", \"channel\":\"1\", \"nbfcStatus\":\"0\", \"hashKey\":\"4d2c9f484c94bae27205ac2f45bb29f5\"}");
+//          String message = "{\"txnId\":\"ZAMT0001\",\"agentMob\":\"9350210028\",\"clientAgentId\":\"ZAM100002\",\"agentName\":\"AmitSharma\",\"dateOfBirth\":\"04/11/1979\",\"partnerId\":\"1225\",\"gender\":\"F\",\"aadhaarToken\":\"5552amisha49\",\"fatherName\":\"chander pal sharma\",\"handicapped\":\"0\",\"shopName\":\"jinicart\",\"pancard\":\"BCNPS0822E\",\"address\":\"K 106 krishna gali no 8 maujpur\",\"city\":\"delhi\",\"district\":\"north east delhi\",\"state\":\"delhi\",\"pinCode\":\"110053\",\"altOccupationType\":\"Private\",\"highestQualification\":\"BA\", \"isCorporate\":\"1\",\"activityFrom\":\"19/05/2021\",\"allocationIFSC\":\"ICIC0001135\",\"agentType\":\"1\",\"minCashHandlingLimit\":\"50000\",\"course\":\"None\",\"passingDate\":\"05/10/2010\",\"expFromDate\":\"05/10/2000\",\"expToDate\":\"05/10/2000\",\"deviceName\":\"Computer core 2\",\"deviceCode\":\"12\",\"givenDate\":\"05/10/2010\",\"connectivityType\":\"Mobile\", \"connectivityProvider\":\"1\",\"providerPhoneNum\":\"9350210028\",\"primarySSA\":\"delhi\",\"primaryVillegeCode\":\"40335000\",\"primaryPinCode\":\"110053\",\"primarySunday\":\"1\",\"primaryMonday\":\"1\",\"primaryTuesday\":\"1\",\"primaryWednesday\":\"1\",\"primaryThursday\":\"1\",\"primaryFriday\":\"1\",\"primarySaturday\":\"1\",\"secondaryVillegeCode\":\"40335000\",\"secondaryVillegeDetails\":\"kdfjhgkdf\",\"secondarySunday\":\"1\",\"secondaryMonday\":\"1\",\"secondaryTuesday\":\"1\",\"secondaryWednesday\":\"1\",\"secondaryThursday\":\"1\",\"secondaryFriday\":\"1\",\"secondarySaturday\":\"1\",\"remunMonth\":\"1\",\"remunYear\":\"2020\",\"corporatedId\":\"46\",\"channel\":\"1\",\"nbfcStatus\":\"0\",\"hashKey\":\"4d2c9f484c94bae27205ac2f45bb29f5\"}";
             //String message = msg.toString();
             Gson gson = new Gson();
             String message = gson.toJson(msg);
-            System.out.println("ooooooooooooo"+message);
+            System.out.println("ooooooooooooo" + message);
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] digestOfPassword = md.digest(sercretKey.getBytes(StandardCharsets.UTF_8));
             byte[] keyBytes = Arrays.copyOf(digestOfPassword, 24);
@@ -63,7 +104,7 @@ public class EncryptionService {
         return null;
     }
 
-    public String getAESEncryption(HashMap<String,Object> input) throws Exception {
+    public String getAESEncryption(HashMap<String, Object> input) throws Exception {
         String type = (String) input.get("type");
         String key = (String) input.get("sercretKey");
         Object message = input.get("message");
@@ -107,5 +148,4 @@ public class EncryptionService {
             return e.getMessage();
         }
     }
-
 }
