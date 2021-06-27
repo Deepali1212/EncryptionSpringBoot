@@ -38,7 +38,7 @@ public class EncryptionService {
         try {
             SecretKey secretKey = new SecretKeySpec(encoded.getBytes(StandardCharsets.UTF_8), "AES");
             byte[] iv = CryptoUtils.getRandomNonce(IV_LENGTH_BYTE);
-            return Hex.encodeHexString(EncryptorAesGcm.encryptWithPrefixIV(message.getBytes(StandardCharsets.UTF_8), secretKey, iv));
+            return Base64.getEncoder().encodeToString(EncryptorAesGcm.encryptWithPrefixIV(message.getBytes(StandardCharsets.UTF_8), secretKey, iv));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -51,7 +51,7 @@ public class EncryptionService {
 
         try {
             SecretKey secretKey = new SecretKeySpec(encoded.getBytes(StandardCharsets.UTF_8), "AES");
-            byte[] msgByte = Hex.decodeHex(msg);
+            byte[] msgByte = Base64.getDecoder().decode(msg);
             return EncryptorAesGcm.decryptWithPrefixIV(msgByte, secretKey);
         } catch (Exception e) {
             e.printStackTrace();
