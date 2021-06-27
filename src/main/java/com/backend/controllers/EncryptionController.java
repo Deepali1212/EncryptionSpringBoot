@@ -18,8 +18,8 @@ public class EncryptionController {
         if (!(input.containsKey("message")) || !(input.containsKey("secretKey")) || !(input.containsKey("type"))) {
             return null;
         } else if (input.get("type").toString().equalsIgnoreCase("encrypt"))
-            return service.encryptAesGcm(input);
-        else return service.decryptAesGcm(input);
+            return service.encryptAesCbc(input);
+        else return service.decryptAesCbc(input);
 
     }
     @PostMapping("/getAESEncryption")

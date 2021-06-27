@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
+import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -23,10 +23,69 @@ import java.util.HashMap;
 @Service
 public class EncryptionService {
 
-    private static final String ENCRYPT_ALGO = "AES/GCM/NoPadding";
-    private static final int TAG_LENGTH_BIT = 128;
-    private static final int IV_LENGTH_BYTE = 12;
-    private static final int AES_KEY_BIT = 256;
+    private static final String ENCRYPT_ALGO = "AES/CBC/PKCS5Padding";
+    private static final int IV_LENGTH_BYTE = 16;
+
+    public String encryptAesCbc(HashMap<String, Object> input) {
+        Object msg = input.get("message");
+        String secretKey = (String) input.get("secretKey");
+
+        Gson gson = new Gson();
+        String message = gson.toJson(msg);
+
+        String base64EncryptedString = "";
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+            byte[] digestOfPassword = md.digest(secretKey.getBytes(StandardCharsets.UTF_8));
+            byte[] keyBytes = Arrays.copyOf(digestOfPassword, 24);
+            byte[] iv = Arrays.copyOf(digestOfPassword, 16);
+
+            SecretKey key = new SecretKeySpec(keyBytes, "AES");
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+
+            cipher.init(Cipher.ENCRYPT_MODE, key, ivParameterSpec);
+            byte[] plainTextBytes = message.getBytes(StandardCharsets.UTF_8);
+            byte[] buf = cipher.doFinal(plainTextBytes);
+            byte[] base64Bytes = Base64.getEncoder().encode(buf);
+
+            base64EncryptedString = new String(base64Bytes);
+            return base64EncryptedString;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String decryptAesCbc(HashMap<String, Object> input) {
+        String message = (String) input.get("message");
+        String secretKey = (String) input.get("secretKey");
+
+        String decrypt = "";
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+            byte[] digestOfPassword = md.digest(secretKey.getBytes(StandardCharsets.UTF_8));
+            byte[] keyBytes = Arrays.copyOf(digestOfPassword, 24);
+            byte[] iv = Arrays.copyOf(digestOfPassword, 16);
+
+            SecretKey key = new SecretKeySpec(keyBytes, "AES");
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+            cipher.init(Cipher.DECRYPT_MODE, key, ivParameterSpec);
+
+            byte[] plainText = cipher.doFinal(Base64.getDecoder().decode(message));
+            decrypt = new String(plainText);
+            return decrypt;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
 
     public String encryptAesGcm(HashMap<String, Object> input) {
         Object msg = input.get("message");
