@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 @RestController
 public class EncryptionController {
@@ -14,7 +15,7 @@ public class EncryptionController {
     private EncryptionService service;
 
     @PostMapping("/getEncryptionData")
-    public String encrypt(@RequestBody HashMap<String, Object> input) {
+    public String encrypt(@RequestBody LinkedHashMap<String, Object> input) {
         if (!(input.containsKey("message")) || !(input.containsKey("secretKey")) || !(input.containsKey("type"))) {
             return null;
         } else if (input.get("type").toString().equalsIgnoreCase("encrypt"))

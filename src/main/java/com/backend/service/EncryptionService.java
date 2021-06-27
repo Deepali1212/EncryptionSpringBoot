@@ -1,24 +1,18 @@
 package com.backend.service;
 
 import com.google.gson.Gson;
-import org.apache.commons.codec.binary.Hex;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
 
-import javax.crypto.*;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 @Service
 public class EncryptionService {
@@ -26,12 +20,19 @@ public class EncryptionService {
     private static final String ENCRYPT_ALGO = "AES/CBC/PKCS5Padding";
     private static final int IV_LENGTH_BYTE = 16;
 
-    public String encryptAesCbc(HashMap<String, Object> input) {
+    public String encryptAesCbc(LinkedHashMap<String, Object> input) {
         Object msg = input.get("message");
         String secretKey = (String) input.get("secretKey");
 
         Gson gson = new Gson();
         String message = gson.toJson(msg);
+
+//        String messageHard = "{\"txnId\":\"ZAMT0001\",\"agentMob\":\"9350210028\",\"clientAgentId\":\"ZAM100002\",\"agentName\":\"AmitSharma\",\"dateOfBirth\":\"04/11/1979\",\"partnerId\":\"1225\",\"gender\":\"F\",\"aadhaarToken\":\"5552amisha49\",\"fatherName\":\"chander pal sharma\",\"handicapped\":\"0\",\"shopName\":\"jinicart\",\"pancard\":\"BCNPS0822E\",\"address\":\"K 106 krishna gali no 8 maujpur\",\"city\":\"delhi\",\"district\":\"north east delhi\",\"state\":\"delhi\",\"pinCode\":\"110053\",\"altOccupationType\":\"Private\",\"highestQualification\":\"BA\",\"isCorporate\":\"1\",\"activityFrom\":\"19/05/2021\",\"allocationIFSC\":\"ICIC0001135\",\"agentType\":\"1\",\"minCashHandlingLimit\":\"50000\",\"course\":\"None\",\"passingDate\":\"05/10/2010\",\"expFromDate\":\"05/10/2000\",\"expToDate\":\"05/10/2000\",\"deviceName\":\"Computer core 2\",\"deviceCode\":\"12\",\"givenDate\":\"05/10/2010\",\"connectivityType\":\"Mobile\",\"connectivityProvider\":\"1\",\"providerPhoneNum\":\"9350210028\",\"primarySSA\":\"delhi\",\"primaryVillegeCode\":\"40335000\",\"primaryPinCode\":\"110053\",\"primarySunday\":\"1\",\"primaryMonday\":\"1\",\"primaryTuesday\":\"1\",\"primaryWednesday\":\"1\",\"primaryThursday\":\"1\",\"primaryFriday\":\"1\",\"primarySaturday\":\"1\",\"secondaryVillegeCode\":\"40335000\",\"secondaryVillegeDetails\":\"kdfjhgkdf\",\"secondarySunday\":\"1\",\"secondaryMonday\":\"1\",\"secondaryTuesday\":\"1\",\"secondaryWednesday\":\"1\",\"secondaryThursday\":\"1\",\"secondaryFriday\":\"1\",\"secondarySaturday\":\"1\",\"remunMonth\":\"1\",\"remunYear\":\"2020\",\"corporatedId\":\"46\",\"channel\":\"1\",\"nbfcStatus\":\"0\",\"hashKey\":\"4d2c9f484c94bae27205ac2f45bb29f5\"}";
+//        if (!message.equals(messageHard)){
+//            System.out.println("not equal!");
+//            System.out.println(message);
+//            System.out.println(messageHard);
+//        }
 
         String base64EncryptedString = "";
         MessageDigest md = null;
