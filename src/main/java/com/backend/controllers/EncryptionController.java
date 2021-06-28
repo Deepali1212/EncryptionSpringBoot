@@ -24,11 +24,12 @@ public class EncryptionController {
 
     }
     @PostMapping("/getAESEncryption")
-    public String getAESEncryption(@RequestBody HashMap<String, Object> input) throws Exception {
-        if (!(input.containsKey("message")) || !(input.containsKey("sercretKey")) || !(input.containsKey("type"))) {
+    public String getAESEncryption(@RequestBody LinkedHashMap<String, Object> input) throws Exception {
+        if (!(input.containsKey("message")) || !(input.containsKey("secretKey")) || !(input.containsKey("type"))) {
             return null;
-        }
-        return service.getAESEncryption(input);
+        } else if (input.get("type").toString().equalsIgnoreCase("encrypt"))
+            return service.encryptAesCbc128(input);
+        else return service.decryptAesCbc128(input);
 
     }
 }
