@@ -1,5 +1,6 @@
 package com.backend.controllers;
 
+import com.backend.dto.EncryptedDataDto;
 import com.backend.service.EncryptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +24,7 @@ public class EncryptionController {
         else return service.decryptAesCbc(input);
 
     }
+
     @PostMapping("/getAESEncryption")
     public String getAESEncryption(@RequestBody LinkedHashMap<String, Object> input) throws Exception {
         if (!(input.containsKey("message")) || !(input.containsKey("secretKey")) || !(input.containsKey("type"))) {
@@ -30,6 +32,17 @@ public class EncryptionController {
         } else if (input.get("type").toString().equalsIgnoreCase("encrypt"))
             return service.encryptAesCbc128(input);
         else return service.decryptAesCbc128(input);
+
+    }
+
+    @PostMapping("/getAESEncryptionwithiv")
+    public String getAESEncryptionWithIV(@RequestBody LinkedHashMap<String, Object> input) throws Exception {
+        if (!(input.containsKey("message")) || !(input.containsKey("secretKey"))
+                || !(input.containsKey("type") || !(input.containsKey("iv")))) {
+            return null;
+        } else if (input.get("type").toString().equalsIgnoreCase("encrypt"))
+            return service.encryptAesCbc128WithRandomIV(input);
+        else return service.decryptAesCbc128WithRandomIV(input);
 
     }
 }

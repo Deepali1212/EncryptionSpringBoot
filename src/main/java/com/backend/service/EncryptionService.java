@@ -1,5 +1,6 @@
 package com.backend.service;
 
+import com.backend.dto.EncryptedDataDto;
 import com.google.gson.Gson;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ public class EncryptionService {
 
     private static final String ENCRYPT_ALGO = "AES/CBC/PKCS5Padding";
     private static final int IV_LENGTH_BYTE = 16;
+    private static final int AES_KEY_BIT = 128;
 
     public String encryptAesCbc(LinkedHashMap<String, Object> input) {
         Object msg = input.get("message");
@@ -94,13 +96,6 @@ public class EncryptionService {
 
         Gson gson = new Gson();
         String message = gson.toJson(msg);
-
-//        String messageHard = "{\"txnId\":\"ZAMT0001\",\"agentMob\":\"9350210028\",\"clientAgentId\":\"ZAM100002\",\"agentName\":\"AmitSharma\",\"dateOfBirth\":\"04/11/1979\",\"partnerId\":\"1225\",\"gender\":\"F\",\"aadhaarToken\":\"5552amisha49\",\"fatherName\":\"chander pal sharma\",\"handicapped\":\"0\",\"shopName\":\"jinicart\",\"pancard\":\"BCNPS0822E\",\"address\":\"K 106 krishna gali no 8 maujpur\",\"city\":\"delhi\",\"district\":\"north east delhi\",\"state\":\"delhi\",\"pinCode\":\"110053\",\"altOccupationType\":\"Private\",\"highestQualification\":\"BA\",\"isCorporate\":\"1\",\"activityFrom\":\"19/05/2021\",\"allocationIFSC\":\"ICIC0001135\",\"agentType\":\"1\",\"minCashHandlingLimit\":\"50000\",\"course\":\"None\",\"passingDate\":\"05/10/2010\",\"expFromDate\":\"05/10/2000\",\"expToDate\":\"05/10/2000\",\"deviceName\":\"Computer core 2\",\"deviceCode\":\"12\",\"givenDate\":\"05/10/2010\",\"connectivityType\":\"Mobile\",\"connectivityProvider\":\"1\",\"providerPhoneNum\":\"9350210028\",\"primarySSA\":\"delhi\",\"primaryVillegeCode\":\"40335000\",\"primaryPinCode\":\"110053\",\"primarySunday\":\"1\",\"primaryMonday\":\"1\",\"primaryTuesday\":\"1\",\"primaryWednesday\":\"1\",\"primaryThursday\":\"1\",\"primaryFriday\":\"1\",\"primarySaturday\":\"1\",\"secondaryVillegeCode\":\"40335000\",\"secondaryVillegeDetails\":\"kdfjhgkdf\",\"secondarySunday\":\"1\",\"secondaryMonday\":\"1\",\"secondaryTuesday\":\"1\",\"secondaryWednesday\":\"1\",\"secondaryThursday\":\"1\",\"secondaryFriday\":\"1\",\"secondarySaturday\":\"1\",\"remunMonth\":\"1\",\"remunYear\":\"2020\",\"corporatedId\":\"46\",\"channel\":\"1\",\"nbfcStatus\":\"0\",\"hashKey\":\"4d2c9f484c94bae27205ac2f45bb29f5\"}";
-//        if (!message.equals(messageHard)){
-//            System.out.println("not equal!");
-//            System.out.println(message);
-//            System.out.println(messageHard);
-//        }
 
         Cipher cipher = null;
         try {
@@ -264,5 +259,66 @@ public class EncryptionService {
         } catch (Exception e) {
             return e.getMessage();
         }
+    }
+
+    public String encryptAesCbc128WithRandomIV(LinkedHashMap<String, Object> input) {
+        Object msg = input.get("message");
+        String secretKey = (String) input.get("secretKey");
+        String iv = (String) input.get("iv");
+
+        Gson gson = new Gson();
+        String message = gson.toJson(msg);
+
+        String base64EncryptedString = "";
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+            byte[] digestOfPassword = md.digest(secretKey.getBytes(StandardCharsets.UTF_8));
+            byte[] keyBytes = Arrays.copyOf(digestOfPassword, 24);
+//            byte[] iv = Arrays.copyOf(digestOfPassword, 16);
+
+            SecretKey key = new SecretKeySpec(keyBytes, "AES");
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8));
+
+            cipher.init(Cipher.ENCRYPT_MODE, key, ivParameterSpec);
+            byte[] plainTextBytes = message.getBytes(StandardCharsets.UTF_8);
+            byte[] buf = cipher.doFinal(plainTextBytes);
+            byte[] base64Bytes = Base64.getEncoder().encode(buf);
+
+            base64EncryptedString = new String(base64Bytes);
+            return base64EncryptedString;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String decryptAesCbc128WithRandomIV(LinkedHashMap<String, Object> input) {
+        String message = (String) input.get("message");
+        String secretKey = (String) input.get("secretKey");
+        String iv = (String) input.get("iv");
+
+        String decrypt = "";
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+            byte[] digestOfPassword = md.digest(secretKey.getBytes(StandardCharsets.UTF_8));
+            byte[] keyBytes = Arrays.copyOf(digestOfPassword, 24);
+//            byte[] iv = Arrays.copyOf(digestOfPassword, 16);
+
+            SecretKey key = new SecretKeySpec(keyBytes, "AES");
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8));
+            cipher.init(Cipher.DECRYPT_MODE, key, ivParameterSpec);
+
+            byte[] plainText = cipher.doFinal(Base64.getDecoder().decode(message));
+            decrypt = new String(plainText);
+            return decrypt;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
